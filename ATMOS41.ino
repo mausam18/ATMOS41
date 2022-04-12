@@ -423,19 +423,19 @@ void setup() {
   while (!Serial)
     ;
   WiFi.begin(ssid, pass);
-  while (WiFi.status() != WL_CONNECTED)
-  {
-    delay(500);
-    M5.Lcd.fillScreen(WHITE);
-    M5.Lcd.fillRect(0, 0, 400, 50, BLUE);
-    M5.Lcd.setCursor(80, 20);
-    M5.Lcd.print("M5-STACK CORE2");
-    M5.Lcd.setCursor(10, 120);
-    M5.Lcd.print("Connecting to Wifi");
-    M5.Lcd.print(".......");
-    Serial.print(".");  // print ... till not connected
-    delay(10000);
-  }
+  // while (WiFi.status() != WL_CONNECTED)
+  // {
+  //   delay(500);
+  //   M5.Lcd.fillScreen(WHITE);
+  //   M5.Lcd.fillRect(0, 0, 400, 50, BLUE);
+  //   M5.Lcd.setCursor(80, 20);
+  //   M5.Lcd.print("M5-STACK CORE2");
+  //   M5.Lcd.setCursor(10, 120);
+  //   M5.Lcd.print("Connecting to Wifi");
+  //   M5.Lcd.print(".......");
+  //   Serial.print(".");  // print ... till not connected
+  //   delay(10000);
+  // }
 
   M5.Lcd.fillScreen(0);
   Serial.println("");
