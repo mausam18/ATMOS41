@@ -535,9 +535,12 @@ void loop() {
   // unsigned long currentTime = millis();
   // MQTT_connect();
 
-  if (M5.BtnA.isPressed()) {
+  M5.update();
+  Serial.println("._.");
+  if (M5.BtnA.wasReleased()) {
     printAtmosValuesBTNA();
   }
+
   // measure one at a time
 //  for (byte i = 0; i < 62; i++) {
 //    char addr = decToChar(i);
