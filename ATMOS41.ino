@@ -6,9 +6,6 @@
 #include "Adafruit_MQTT.h"
 #include "Adafruit_MQTT_Client.h"
 
-
-
-
 WiFiClient client;
 #define DATA_PIN 26        /*!< The pin of the SDI-12 data bus */
 #define POWER_PIN -1       /*!< The sensor power pin (or -1 if not switching power) */
