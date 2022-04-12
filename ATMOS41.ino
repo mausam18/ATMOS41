@@ -208,7 +208,7 @@ void printAtmosValues() {
     M5.Lcd.fillRect(0, 120, 320, 4, BLUE); // horizontal line
     M5.Lcd.fillRect(0, 180, 320, 4, BLUE); // horizontal line
 
-    delay(5000);
+    // delay(5000);
 
   }
 
@@ -259,7 +259,7 @@ void printAtmosValues() {
     M5.Lcd.fillRect(0, 180, 320, 4, BLUE); // horizontal line
 
 
-    delay(5000);
+    // delay(5000);
   }
 
   //else if (M5.BtnB.wasReleased()) 
@@ -431,10 +431,7 @@ void setup() {
     M5.Lcd.print(".......");
     Serial.print(".");  // print ... till not connected
     delay(10000);
-
-
   }
-
 
   M5.Lcd.fillScreen(0);
   Serial.println("");
@@ -450,7 +447,6 @@ void setup() {
   M5.Lcd.print("Opening SDI-12 bus !");
   mySDI12.begin();
 
-
   delay(10000);  // allow things to settle
 
   // Power the sensors;
@@ -461,6 +457,9 @@ void setup() {
     delay(200);
   }
 
+  M5.Lcd.fillScreen(GREEN);
+  M5.Lcd.setCursor(10, 100);
+  M5.Lcd.print("Looking for the sensor...");
   // Quickly Scan the Address Space
 
   M5.Lcd.fillScreen(GREEN);
@@ -470,6 +469,7 @@ void setup() {
   M5.Lcd.setCursor(10, 120);
   M5.Lcd.print("please wait...");
   delay(5000);
+  
 
   M5.Lcd.fillScreen(ORANGE);
   M5.Lcd.setCursor(10, 45);
@@ -488,13 +488,11 @@ void setup() {
   M5.Lcd.setCursor(10, 170);
   M5.Lcd.print("Sensor ID- ATM-410005622");
   Serial.println("Sensor Version, Sensor ID");
-  delay(10000);
-
-  M5.Lcd.fillScreen(GREEN);
-  M5.Lcd.setCursor(10, 100);
-  M5.Lcd.print("Looking for the sensor...");
-
   delay(5000);
+
+  
+
+  // delay(5000);
 
   for (byte i = 0; i < 62; i++) {
     char addr = decToChar(i);
@@ -547,7 +545,7 @@ void loop() {
 //      Serial.println();
       
     
-//      printAtmosValues();
+     printAtmosValues();
      
 //      Temperature.publish(temperature);
 //     
