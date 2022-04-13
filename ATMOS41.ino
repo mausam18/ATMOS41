@@ -6,16 +6,17 @@
 #include "Adafruit_MQTT.h"
 #include "Adafruit_MQTT_Client.h"
 
+
+
 WiFiClient client;
+
+#define SERIAL_BAUD 115200 /*!< The baud rate for the output serial port */
 #define DATA_PIN 26        /*!< The pin of the SDI-12 data bus */
 #define POWER_PIN -1       /*!< The sensor power pin (or -1 if not switching power) */
 
 bool tft_backlight = true;
-
-#define SERIAL_BAUD 115200 /*!< The baud rate for the output serial port */
 // screen off counter
 int tft_counter = 0;
-
 // pictures on the sd card
 String iot_picture = "";
 const char *ssid =  "OIZOM_3G";
@@ -23,7 +24,7 @@ const char *pass =  "9510810866";
 #define MQTT_SERV "io.adafruit.com"
 #define MQTT_PORT 1883
 #define MQTT_NAME "mausam5555"
-#define MQTT_PASS "aio_nXeD42YEHpcHbxcIVv50qhva8CuL"
+#define MQTT_PASS "aio_xsHm415Vz1Jw2UmORokMMLgtOGXE"
 
 ///////////////////////////////////////////////
 Adafruit_MQTT_Client mqtt(&client, MQTT_SERV, MQTT_PORT, MQTT_NAME, MQTT_PASS);
@@ -44,7 +45,10 @@ const unsigned long postInterval = 10 * 60 * 1000;  // posting interval of 10 mi
 
 
 float temperature, atmosphericpressure, humiditysensortemperature, vaporpressure, xorientation, yorientation, precipitation, solar, winddirection, windspeed;
+unsigned long previousMillis = 0;        // will store last time LED was updated
 
+// constants won't change:
+const long interval = 10000; // wait ten seconds between measurement attempts.
 
 /** Define the SDI-12 bus */
 SDI12 mySDI12(DATA_PIN);
@@ -54,7 +58,7 @@ bool isActive[64] = {
   0,
 };
 
-uint8_t numSensors = 15;
+uint8_t numSensors = 0;
 
 float atmosValues[20] = {0};
 
@@ -120,198 +124,191 @@ void printInfo(char i) {
   Serial.print(", ");
 }
 
-void printAtmosValuesBTNA() {
-  {
-    M5.Lcd.fillScreen(0);
-      M5.Lcd.print("JOY");
-   M5.Lcd.fillRect(0, 0, 400, 80, WHITE);
-   M5.Lcd.setCursor(10, 20);
-   M5.Lcd.print("Solar: ");
-
-   M5.Lcd.print(atmosValues[0]);
-   Serial.print("Solar : "); Serial.println(atmosValues[0]);
-
-   solar = atmosValues[0];
-
-   Serial.print("precipitation : "); Serial.println(atmosValues[1]);
-   M5.Lcd.setCursor(10, 80);
-   M5.Lcd.fillRect(0, 80, 400, 80, WHITE);
-   M5.Lcd.print("precipitation: ");
-
-   M5.Lcd.print(atmosValues[1]);
-   precipitation = atmosValues[1];
 
 
-   Serial.print("strikes : "); Serial.println(atmosValues[2]);
-   M5.Lcd.setCursor(10, 140);
-   M5.Lcd.fillRect(0, 160, 400, 80, WHITE);
-   M5.Lcd.print("strikes: ");
+void printAtmosValuesBTNA1() {
+  M5.Lcd.fillScreen(0);
 
-   M5.Lcd.print(atmosValues[2]);
+  M5.Lcd.fillRect(0, 0, 400, 80, WHITE);
+  M5.Lcd.setCursor(10, 20);
+  M5.Lcd.print("Solar : ");
+
+  M5.Lcd.print(atmosValues[0]);
+  Serial.print("Solar : "); Serial.println(atmosValues[0]);
+
+  solar = atmosValues[0];
+
+  Serial.print("precipitation : "); Serial.println(atmosValues[1]);
+  M5.Lcd.setCursor(10, 80);
+  M5.Lcd.fillRect(0, 80, 400, 80, WHITE);
+  M5.Lcd.print("precipitation : ");
+
+  M5.Lcd.print(atmosValues[1]);
+  precipitation = atmosValues[1];
 
 
-   Serial.print("strikeDistance : "); Serial.println(atmosValues[3]);
-   M5.Lcd.setCursor(10, 200);
-   M5.Lcd.fillRect(0, 240, 400, 80, WHITE);
-   M5.Lcd.print("strikeDistance: ");
+  Serial.print("strikes : "); Serial.println(atmosValues[2]);
+  M5.Lcd.setCursor(10, 140);
+  M5.Lcd.fillRect(0, 160, 400, 80, WHITE);
+  M5.Lcd.print("strikes : ");
 
-   M5.Lcd.print(atmosValues[3]);
+  M5.Lcd.print(atmosValues[2]);
 
-   M5.Lcd.fillRect(0, 60, 320, 4, BLUE); // horizontal line
-   M5.Lcd.fillRect(0, 120, 320, 4, BLUE); // horizontal line
-   M5.Lcd.fillRect(0, 180, 320, 4, BLUE); // horizontal line
 
-    //  delay(5000);
-  }
+
+  Serial.print("strikeDistance : "); Serial.println(atmosValues[3]);
+  M5.Lcd.setCursor(10, 200);
+  M5.Lcd.fillRect(0, 240, 400, 80, WHITE);
+  M5.Lcd.print("strikeDistance : ");
+
+  M5.Lcd.print(atmosValues[3]);
+
+  M5.Lcd.fillRect(0, 60, 320, 4, BLUE); // horizontal line
+  M5.Lcd.fillRect(0, 120, 320, 4, BLUE); // horizontal line
+  M5.Lcd.fillRect(0, 180, 320, 4, BLUE); // horizontal line
+
+  //delay(10000);
 }
-void printAtmosValues() {
-//  if (M5.BtnA.wasReleased()) 
-  {
-
-    M5.Lcd.fillScreen(0);
-    Serial.print("windSpeed : "); 
-    Serial.println(atmosValues[4]);
-    M5.Lcd.fillRect(0, 0, 400, 80, WHITE);
-    M5.Lcd.setCursor(10, 20);
-    M5.Lcd.print("windSpeed: ");
-
-    M5.Lcd.print(atmosValues[4]);
-    windspeed = atmosValues[4];
 
 
-    Serial.print("windDirection : "); 
-    Serial.println(atmosValues[5]);
-    M5.Lcd.setCursor(10, 80);
-    M5.Lcd.fillRect(0, 80, 400, 80, WHITE);
-    M5.Lcd.print("windDirection: ");
+void printAtmosValuesBTNA2() {
+  M5.Lcd.fillScreen(0);
+  Serial.print("windSpeed : "); Serial.println(atmosValues[4]);
+  M5.Lcd.fillRect(0, 0, 400, 80, WHITE);
+  M5.Lcd.setCursor(10, 20);
+  M5.Lcd.print("windSpeed : ");
 
-    M5.Lcd.print(atmosValues[5]);
-    winddirection = atmosValues[5];
-
-
-    Serial.print("gustWindSpeed : "); 
-    Serial.println(atmosValues[6]);
-    M5.Lcd.setCursor(10, 140);
-    M5.Lcd.fillRect(0, 160, 400, 80, WHITE);
-    M5.Lcd.print("gustWindSpeed: ");
-
-    M5.Lcd.print(atmosValues[6]);
+  M5.Lcd.print(atmosValues[4]);
+  windspeed = atmosValues[4];
 
 
-    Serial.print("airTemperature : "); 
-    Serial.println(atmosValues[7]);
-    M5.Lcd.setCursor(10, 200);
-    M5.Lcd.fillRect(0, 240, 400, 80, WHITE);
-    M5.Lcd.print("airTemperature: ");
+  Serial.print("windDirection : "); Serial.println(atmosValues[5]);
+  M5.Lcd.setCursor(10, 80);
+  M5.Lcd.fillRect(0, 80, 400, 80, WHITE);
+  M5.Lcd.print("windDirection : ");
 
-    M5.Lcd.print(atmosValues[7]);
-    temperature = atmosValues[7];
-
-
-    M5.Lcd.fillRect(0, 60, 320, 4, BLUE); // horizontal line
-    M5.Lcd.fillRect(0, 120, 320, 4, BLUE); // horizontal line
-    M5.Lcd.fillRect(0, 180, 320, 4, BLUE); // horizontal line
-
-    // delay(5000);
-
-  }
+  M5.Lcd.print(atmosValues[5]);
+  winddirection = atmosValues[5];
 
 
-//  else if (M5.BtnB.isPressed()) 
-{
+  Serial.print("gustWindSpeed : "); Serial.println(atmosValues[6]);
+  M5.Lcd.setCursor(10, 140);
+  M5.Lcd.fillRect(0, 160, 400, 80, WHITE);
+  M5.Lcd.print("gustWindSpeed : ");
 
-    M5.Lcd.fillScreen(0);
-    Serial.print("vaporPressure : "); Serial.println(atmosValues[8]);
-    M5.Lcd.fillRect(0, 0, 400, 80, WHITE);
-    M5.Lcd.setCursor(10, 20);
-    M5.Lcd.print("vaporPressure: ");
-
-    M5.Lcd.print(atmosValues[8]);
-    vaporpressure = atmosValues[8];
+  M5.Lcd.print(atmosValues[6]);
 
 
-    Serial.print("atmosphericPres : "); Serial.println(atmosValues[9]);
-    M5.Lcd.setCursor(10, 80);
-    M5.Lcd.fillRect(0, 80, 400, 80, WHITE);
-    M5.Lcd.print("atmosphericPres: ");
+  Serial.print("airTemperature : "); Serial.println(atmosValues[7]);
+  M5.Lcd.setCursor(10, 200);
+  M5.Lcd.fillRect(0, 240, 400, 80, WHITE);
+  M5.Lcd.print("airTemperature : ");
 
-    M5.Lcd.print(atmosValues[9]);
-    atmosphericpressure = atmosValues[9];
-
-
-
-    Serial.print("relativeHumidity : "); Serial.println(atmosValues[10]);
-    M5.Lcd.setCursor(10, 140);
-    M5.Lcd.fillRect(0, 160, 400, 80, WHITE);
-    M5.Lcd.print("relativeHumidity: ");
-
-    M5.Lcd.print(atmosValues[10]);
+  M5.Lcd.print(atmosValues[7]);
+  temperature = atmosValues[7];
 
 
-    Serial.print("humiditySensorTemp : "); Serial.println(atmosValues[11]);
-    M5.Lcd.setCursor(10, 200);
-    M5.Lcd.fillRect(0, 240, 400, 80, WHITE);
-    M5.Lcd.print("humiditySensorTemp:");
+  M5.Lcd.fillRect(0, 60, 320, 4, BLUE); // horizontal line
+  M5.Lcd.fillRect(0, 120, 320, 4, BLUE); // horizontal line
+  M5.Lcd.fillRect(0, 180, 320, 4, BLUE); // horizontal line
 
-
-    M5.Lcd.print(atmosValues[11]);
-    humiditysensortemperature = atmosValues[11];
-
-
-    M5.Lcd.fillRect(0, 60, 320, 4, BLUE); // horizontal line
-    M5.Lcd.fillRect(0, 120, 320, 4, BLUE); // horizontal line
-    M5.Lcd.fillRect(0, 180, 320, 4, BLUE); // horizontal line
-
-
-    // delay(5000);
-  }
-
-  //else if (M5.BtnB.wasReleased()) 
-  {
-
-    M5.Lcd.fillScreen(0);
-    Serial.print("xOrientation : "); Serial.println(atmosValues[12]);
-    M5.Lcd.fillRect(0, 0, 400, 80, WHITE);
-    M5.Lcd.setCursor(10, 20);
-    M5.Lcd.print("xOrientation: ");
-
-    M5.Lcd.print(atmosValues[12]);
-    xorientation = atmosValues[12];
-
-
-    Serial.print("yOrientation : "); Serial.println(atmosValues[13]);
-    M5.Lcd.setCursor(10, 80);
-    M5.Lcd.fillRect(0, 80, 400, 80, WHITE);
-    M5.Lcd.print("yOrientation: ");
-
-    M5.Lcd.print(atmosValues[13]);
-    yorientation = atmosValues[13];
-
-
-    Serial.print("NorthWindSpeed : "); Serial.println(atmosValues[15]);
-    M5.Lcd.setCursor(10, 140);
-    M5.Lcd.fillRect(0, 160, 400, 80, WHITE);
-    M5.Lcd.print("NorthWindSpeed: ");
-
-    M5.Lcd.print(atmosValues[15]);
-
-
-
-    Serial.print("EastWindSpeed : "); Serial.println(atmosValues[16]);
-    M5.Lcd.setCursor(10, 200);
-    M5.Lcd.fillRect(0, 240, 400, 80, WHITE);
-    M5.Lcd.print("EastWindSpeed: ");
-
-    M5.Lcd.print(atmosValues[16]);
-
-    M5.Lcd.fillRect(0, 60, 320, 4, BLUE); // horizontal line
-    M5.Lcd.fillRect(0, 120, 320, 4, BLUE); // horizontal line
-    M5.Lcd.fillRect(0, 180, 320, 4, BLUE); // horizontal line
-
-    delay(5000);
-  }
+  //delay(10000);
 
 }
+
+void printAtmosValuesBTNA3() {
+
+  M5.Lcd.fillScreen(0);
+  Serial.print("vaporPress : "); Serial.println(atmosValues[8]);
+  M5.Lcd.fillRect(0, 0, 400, 80, WHITE);
+  M5.Lcd.setCursor(10, 20);
+  M5.Lcd.print("vaporPress : ");
+
+  M5.Lcd.print(atmosValues[8]);
+  vaporpressure = atmosValues[8];
+
+
+  Serial.print("atmosphericPress : "); Serial.println(atmosValues[9]);
+  M5.Lcd.setCursor(10, 80);
+  M5.Lcd.fillRect(0, 80, 400, 80, WHITE);
+  M5.Lcd.print("atmosphericPress : ");
+
+  M5.Lcd.print(atmosValues[9]);
+  atmosphericpressure = atmosValues[9];
+
+
+
+  Serial.print("relativeHumidity : "); Serial.println(atmosValues[10]);
+  M5.Lcd.setCursor(10, 140);
+  M5.Lcd.fillRect(0, 160, 400, 80, WHITE);
+  M5.Lcd.print("relativeHumidity : ");
+
+  M5.Lcd.print(atmosValues[10]);
+
+
+  Serial.print("humiditySensorTemp : "); Serial.println(atmosValues[11]);
+  M5.Lcd.setCursor(10, 200);
+  M5.Lcd.fillRect(0, 240, 400, 80, WHITE);
+  M5.Lcd.print("humiditySensorTemp : ");
+
+
+  M5.Lcd.print(atmosValues[11]);
+  humiditysensortemperature = atmosValues[11];
+
+
+  M5.Lcd.fillRect(0, 60, 320, 4, BLUE); // horizontal line
+  M5.Lcd.fillRect(0, 120, 320, 4, BLUE); // horizontal line
+  M5.Lcd.fillRect(0, 180, 320, 4, BLUE); // horizontal line
+
+
+  //delay(10000);
+
+}
+
+void printAtmosValuesBTNA4() {
+
+  M5.Lcd.fillScreen(0);
+  Serial.print("xOrientation : "); Serial.println(atmosValues[12]);
+  M5.Lcd.fillRect(0, 0, 400, 80, WHITE);
+  M5.Lcd.setCursor(10, 20);
+  M5.Lcd.print("xOrientation : ");
+
+  M5.Lcd.print(atmosValues[12]);
+  xorientation = atmosValues[12];
+
+
+  Serial.print("yOrientation : "); Serial.println(atmosValues[13]);
+  M5.Lcd.setCursor(10, 80);
+  M5.Lcd.fillRect(0, 80, 400, 80, WHITE);
+  M5.Lcd.print("yOrientation : ");
+
+  M5.Lcd.print(atmosValues[13]);
+  yorientation = atmosValues[13];
+
+
+  Serial.print("NorthWindSpeed : "); Serial.println(atmosValues[15]);
+  M5.Lcd.setCursor(10, 140);
+  M5.Lcd.fillRect(0, 160, 400, 80, WHITE);
+  M5.Lcd.print("NorthWindSpeed : ");
+
+  M5.Lcd.print(atmosValues[15]);
+
+
+  Serial.print("EastWindSpeed : "); Serial.println(atmosValues[16]);
+  M5.Lcd.setCursor(10, 200);
+  M5.Lcd.fillRect(0, 240, 400, 80, WHITE);
+  M5.Lcd.print("EastWindSpeed : ");
+
+  M5.Lcd.print(atmosValues[16]);
+
+  M5.Lcd.fillRect(0, 60, 320, 4, BLUE); // horizontal line
+  M5.Lcd.fillRect(0, 120, 320, 4, BLUE); // horizontal line
+  M5.Lcd.fillRect(0, 180, 320, 4, BLUE); // horizontal line
+
+  //delay(5000);
+
+}
+
 
 bool getContinuousResults(char i, int resultsExpected) {
   uint8_t resultsReceived = 0;
@@ -366,6 +363,7 @@ bool getContinuousResults(char i, int resultsExpected) {
 
 // this checks for activity at a particular address
 // expects a char, '0'-'9', 'a'-'z', or 'A'-'Z'
+
 boolean checkActive(char i) {
   String myCommand = "";
   myCommand        = "";
@@ -409,6 +407,24 @@ void MQTT_connect()
   }
 }
 
+void sensorDetails() {
+  M5.Lcd.fillScreen(ORANGE);
+  M5.Lcd.setCursor(10, 45);
+  M5.Lcd.print("Sensor Address - 0");
+  M5.Lcd.setCursor(10, 70);
+  M5.Lcd.print("Protocol Version - 1.30");
+  M5.Lcd.setCursor(10, 95);
+  M5.Lcd.print("Sensor Vendor - METER");
+  M5.Lcd.setCursor(10, 120);
+  M5.Lcd.print("Sensor Model - ATM41");
+  M5.Lcd.setCursor(10, 145);
+  M5.Lcd.print("Sensor Version - 529");
+  M5.Lcd.setCursor(10, 170);
+  M5.Lcd.print("Sensor ID- ATM-410005622");
+
+  delay(3000);
+}
+
 
 
 void setup() {
@@ -423,19 +439,19 @@ void setup() {
   while (!Serial)
     ;
   WiFi.begin(ssid, pass);
-  // while (WiFi.status() != WL_CONNECTED)
-  // {
-  //   delay(500);
-  //   M5.Lcd.fillScreen(WHITE);
-  //   M5.Lcd.fillRect(0, 0, 400, 50, BLUE);
-  //   M5.Lcd.setCursor(80, 20);
-  //   M5.Lcd.print("M5-STACK CORE2");
-  //   M5.Lcd.setCursor(10, 120);
-  //   M5.Lcd.print("Connecting to Wifi");
-  //   M5.Lcd.print(".......");
-  //   Serial.print(".");  // print ... till not connected
-  //   delay(10000);
-  // }
+  while (WiFi.status() != WL_CONNECTED)
+  {
+    delay(500);
+    M5.Lcd.fillScreen(WHITE);
+    M5.Lcd.fillRect(0, 0, 400, 50, BLUE);
+    M5.Lcd.setCursor(80, 20);
+    M5.Lcd.print("M5-STACK CORE2");
+    M5.Lcd.setCursor(10, 140);
+    M5.Lcd.print("Connecting to Wifi");
+    M5.Lcd.print(".......");
+    Serial.print(".");  // print ... till not connected
+    delay(5000);
+  }
 
   M5.Lcd.fillScreen(0);
   Serial.println("");
@@ -451,52 +467,27 @@ void setup() {
   M5.Lcd.print("Opening SDI-12 bus !");
   mySDI12.begin();
 
-  delay(3000);  // allow things to settle
 
-  // Power the sensors;
-  if (POWER_PIN > 0) {
-    Serial.println("Powering up sensors...");
-    pinMode(POWER_PIN, OUTPUT);
-    digitalWrite(POWER_PIN, HIGH);
-    delay(200);
-  }
+  delay(5000);  // allow things to settle
 
-  M5.Lcd.fillScreen(GREEN);
-  M5.Lcd.setCursor(10, 100);
-  M5.Lcd.print("Looking for the sensor...");
   // Quickly Scan the Address Space
 
-  M5.Lcd.fillScreen(GREEN);
   Serial.println("Scanning all addresses, please wait...");
+
+  Serial.println("Sensor Address, Protocol Version, Sensor Vendor, Sensor Model, ");
+  Serial.println("Sensor Version, Sensor ID");
+
+  M5.Lcd.fillScreen(GREEN);
   M5.Lcd.setCursor(10, 90);
   M5.Lcd.print("Scanning all addresses");
   M5.Lcd.setCursor(10, 120);
   M5.Lcd.print("please wait...");
-  delay(2000);
-  
+  delay(5000);
 
-  M5.Lcd.fillScreen(ORANGE);
-  M5.Lcd.setCursor(10, 45);
-  M5.Lcd.print("Sensor Address - 0");
-  M5.Lcd.setCursor(10, 70);
-  M5.Lcd.print("Protocol Version - 1.30");
-  M5.Lcd.setCursor(10, 95);
-  M5.Lcd.print("Sensor Vendor - METER");
-  M5.Lcd.setCursor(10, 120);
-  M5.Lcd.print("Sensor Model - ATM41");
-
-  Serial.println("Sensor Address, Protocol Version, Sensor Vendor, Sensor Model, ");
-
-  M5.Lcd.setCursor(10, 145);
-  M5.Lcd.print("Sensor Version - 529");
-  M5.Lcd.setCursor(10, 170);
-  M5.Lcd.print("Sensor ID- ATM-410005622");
-  Serial.println("Sensor Version, Sensor ID");
-  delay(2000);
-
-  
-
-  // delay(5000);
+  M5.Lcd.fillScreen(GREEN);
+  M5.Lcd.setCursor(10, 100);
+  M5.Lcd.print("Looking for the sensor...");
+  //  delay(5000);
 
   for (byte i = 0; i < 62; i++) {
     char addr = decToChar(i);
@@ -510,18 +501,19 @@ void setup() {
   Serial.print("Total number of sensors found:  ");
   Serial.println(numSensors);
 
-  // if (numSensors == 0) {
-  //   Serial.println();
+  if (numSensors == 0) {
+    Serial.println();
 
-  //   Serial.println("No sensors found, please check connections and restart the Arduino.");
-  //   while (true) {
-  //     delay(10);  // do nothing forever
-  //   }
-  // }
+    Serial.println("No sensors found, please check connections and restart the Arduino.");
+    while (true) {
+      delay(10);  // do nothing forever
+    }
+  }
 
+  sensorDetails();
 
-  Serial.println();
-  Serial.println();
+  //Serial.println();
+  //Serial.println();
 
   Serial.println("Time Elapsed (s), Sensor Address, Est Measurement Time (s), Number Measurements, ");
   Serial.println("Real Measurement Time (ms), Measurement 1, Measurement 2, ... etc.");
@@ -532,50 +524,66 @@ void setup() {
 }
 
 void loop() {
-  // unsigned long currentTime = millis();
-  // MQTT_connect();
+
+  unsigned long currentTime = millis();
+  unsigned long currentMillis = millis();
+
 
   M5.update();
-  Serial.println("._.");
-  if (M5.BtnA.wasReleased()) {
-    printAtmosValuesBTNA();
+  M5.Lcd.fillScreen(GREEN);
+  M5.Lcd.setCursor(10, 100);
+  
+  M5.Lcd.print("press the buttons..");
+  //delay(2000);
+  if (M5.BtnA.isPressed()) {
+    M5.Lcd.fillScreen(WHITE);
+    printAtmosValuesBTNA1();
+    delay(2000);
+  }
+  else if (M5.BtnA.wasReleased()) {
+    M5.Lcd.fillScreen(WHITE);
+    printAtmosValuesBTNA2();
+  }
+  else if (M5.BtnB.isPressed()) {
+    M5.Lcd.fillScreen(WHITE);
+    printAtmosValuesBTNA3();
+    delay(2000);
+  }
+  else if (M5.BtnB.wasReleased()) {
+    M5.Lcd.fillScreen(WHITE);
+    printAtmosValuesBTNA4();
+  }
+  if (currentMillis - previousMillis >= 30000) {
+    // save the last time you blinked the LED
+    previousMillis = currentMillis;// wait ten seconds between measurement attempts.
+    MQTT_connect();
   }
 
-  // measure one at a time
-//  for (byte i = 0; i < 62; i++) {
-//    char addr = decToChar(i);
-//    if (isActive[i]) {
-//      // Serial.print(millis() / 1000);
-//      Serial.print(millis());
-//      Serial.print(", ");
-//      getContinuousResults(addr, 4);
-//      Serial.println();
-      
-    
-    //  printAtmosValues();
-     
-//      Temperature.publish(temperature);
-//     
-//      atmosphericPressure.publish(atmosphericpressure);
-//      
-//      humiditySensorTemperature.publish(humiditysensortemperature);
-//     
-//      vaporPressure.publish(vaporpressure);
-//    
-//      Precipitation.publish(precipitation);
-//      
-//      Solar.publish(solar);
-//     
-//      xOrientation.publish(xorientation );
-//     
-//      yOrientation .publish(yorientation );
-//     
-//      windDirection.publish(winddirection);
-//      
-//      windSpeed.publish(windspeed);
-//      //      delay(3000);
+  if (currentMillis - previousMillis >= interval) {
+    // save the last time you blinked the LED
+    previousMillis = currentMillis;// wait ten seconds between measurement attempts.
+    //   measure one at a time
+    for (byte i = 0; i < 62; i++) {
+      char addr = decToChar(i);
+      if (isActive[i]) {
+        //Serial.print(millis() / 1000);
+        Serial.print(millis());
+        Serial.print(", ");
+        getContinuousResults(addr, 4);
+        Serial.println();
 
-//    }
-    // delay(3000);  // wait ten seconds between measurement attempts.
-//  }
+        Temperature.publish(temperature);
+        atmosphericPressure.publish(atmosphericpressure);
+        humiditySensorTemperature.publish(humiditysensortemperature);
+        vaporPressure.publish(vaporpressure);
+        Precipitation.publish(precipitation);
+        Solar.publish(solar);
+        xOrientation.publish(xorientation );
+        yOrientation .publish(yorientation );
+        windDirection.publish(winddirection);
+        windSpeed.publish(windspeed);
+      }
+    }
+  }
+  //
 }
