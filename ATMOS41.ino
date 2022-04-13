@@ -45,10 +45,10 @@ const unsigned long postInterval = 10 * 60 * 1000;  // posting interval of 10 mi
 
 
 float temperature, atmosphericpressure, humiditysensortemperature, vaporpressure, xorientation, yorientation, precipitation, solar, winddirection, windspeed;
-unsigned long previousMillis = 0;        // will store last time LED was updated
+//unsigned long previousMillis = 0;        // will store last time LED was updated
 
 // constants won't change:
-const long interval = 10000; // wait ten seconds between measurement attempts.
+//const long interval = 10000; // wait ten seconds between measurement attempts.
 
 /** Define the SDI-12 bus */
 SDI12 mySDI12(DATA_PIN);
@@ -383,45 +383,51 @@ boolean checkActive(char i) {
 }
 
 
-void MQTT_connect()
-{
-  int8_t ret;
-  // Stop if already connected.
-  if (mqtt.connected())
-  {
-    Serial.println("MQTT Connected");
-    return;
-  }
-  uint8_t retries = 3;
-  while ((ret = mqtt.connect()) != 0) // connect will return 0 for connected
-  {
-    Serial.println("MQTT not Connected");
-    mqtt.disconnect();
-    delay(5000);  // wait 5 seconds
-    retries--;
-    if (retries == 0)
-    {
-      // basically die and wait for WDT to reset me
-      while (1);
-    }
-  }
-}
+//void MQTT_connect()
+//{
+//  int8_t ret;
+//  // Stop if already connected.
+//  if (mqtt.connected())
+//  {
+//    Serial.println("MQTT Connected");
+//    return;
+//  }
+//  uint8_t retries = 3;
+//  while ((ret = mqtt.connect()) != 0) // connect will return 0 for connected
+//  {
+//    Serial.println("MQTT not Connected");
+//    mqtt.disconnect();
+//    delay(5000);  // wait 5 seconds
+//    retries--;
+//    if (retries == 0)
+//    {
+//      // basically die and wait for WDT to reset me
+//      while (1);
+//    }
+//  }
+//}
 
 void sensorDetails() {
   M5.Lcd.fillScreen(ORANGE);
-  M5.Lcd.setCursor(10, 45);
+  M5.Lcd.setCursor(10, 20);
   M5.Lcd.print("Sensor Address - 0");
-  M5.Lcd.setCursor(10, 70);
+  M5.Lcd.setCursor(10, 60);
   M5.Lcd.print("Protocol Version - 1.30");
-  M5.Lcd.setCursor(10, 95);
+  M5.Lcd.setCursor(10, 100);
   M5.Lcd.print("Sensor Vendor - METER");
-  M5.Lcd.setCursor(10, 120);
+  M5.Lcd.setCursor(10, 140);
   M5.Lcd.print("Sensor Model - ATM41");
-  M5.Lcd.setCursor(10, 145);
+  M5.Lcd.setCursor(10, 180);
   M5.Lcd.print("Sensor Version - 529");
-  M5.Lcd.setCursor(10, 170);
+  M5.Lcd.setCursor(10, 220);
   M5.Lcd.print("Sensor ID- ATM-410005622");
 
+
+  M5.Lcd.fillRect(0, 40, 320, 4, BLUE); // horizontal line
+  M5.Lcd.fillRect(0, 80, 320, 4, BLUE); // horizontal line
+  M5.Lcd.fillRect(0, 120, 320, 4, BLUE); // horizontal line
+  M5.Lcd.fillRect(0, 160, 320, 4, BLUE); // horizontal line
+  M5.Lcd.fillRect(0, 200, 320, 4, BLUE); // horizontal line
   delay(3000);
 }
 
@@ -438,20 +444,20 @@ void setup() {
   Serial.begin(SERIAL_BAUD);
   while (!Serial)
     ;
-  WiFi.begin(ssid, pass);
-  while (WiFi.status() != WL_CONNECTED)
-  {
-    delay(500);
-    M5.Lcd.fillScreen(WHITE);
-    M5.Lcd.fillRect(0, 0, 400, 50, BLUE);
-    M5.Lcd.setCursor(80, 20);
-    M5.Lcd.print("M5-STACK CORE2");
-    M5.Lcd.setCursor(10, 140);
-    M5.Lcd.print("Connecting to Wifi");
-    M5.Lcd.print(".......");
-    Serial.print(".");  // print ... till not connected
-    delay(5000);
-  }
+  //  WiFi.begin(ssid, pass);
+  //  while (WiFi.status() != WL_CONNECTED)
+  //  {
+  //    delay(500);
+  //    M5.Lcd.fillScreen(WHITE);
+  //    M5.Lcd.fillRect(0, 0, 400, 50, BLUE);
+  //    M5.Lcd.setCursor(80, 20);
+  //    M5.Lcd.print("M5-STACK CORE2");
+  //    M5.Lcd.setCursor(10, 140);
+  //    M5.Lcd.print("Connecting to Wifi");
+  //    M5.Lcd.print(".......");
+  //    Serial.print(".");  // print ... till not connected
+  //    delay(5000);
+  //  }
 
   M5.Lcd.fillScreen(0);
   Serial.println("");
@@ -467,6 +473,7 @@ void setup() {
   M5.Lcd.print("Opening SDI-12 bus !");
   mySDI12.begin();
 
+  M5.Lcd.fillRect(0, 120, 320, 4, BLUE); // horizontal line
 
   delay(5000);  // allow things to settle
 
@@ -478,6 +485,7 @@ void setup() {
   Serial.println("Sensor Version, Sensor ID");
 
   M5.Lcd.fillScreen(GREEN);
+  M5.Lcd.fillRect(0, 70, 400, 80, YELLOW);
   M5.Lcd.setCursor(10, 90);
   M5.Lcd.print("Scanning all addresses");
   M5.Lcd.setCursor(10, 120);
@@ -485,9 +493,15 @@ void setup() {
   delay(5000);
 
   M5.Lcd.fillScreen(GREEN);
+  M5.Lcd.fillRect(0, 70, 400, 50, YELLOW);
   M5.Lcd.setCursor(10, 100);
   M5.Lcd.print("Looking for the sensor...");
   //  delay(5000);
+
+
+  sensorDetails();
+
+
 
   for (byte i = 0; i < 62; i++) {
     char addr = decToChar(i);
@@ -501,16 +515,15 @@ void setup() {
   Serial.print("Total number of sensors found:  ");
   Serial.println(numSensors);
 
-  if (numSensors == 0) {
-    Serial.println();
+  //  if (numSensors == 0) {
+  //    Serial.println();
+  //
+  //    Serial.println("No sensors found, please check connections and restart the Arduino.");
+  //    while (true) {
+  //      delay(10);  // do nothing forever
+  //    }
+  // }
 
-    Serial.println("No sensors found, please check connections and restart the Arduino.");
-    while (true) {
-      delay(10);  // do nothing forever
-    }
-  }
-
-  sensorDetails();
 
   //Serial.println();
   //Serial.println();
@@ -519,71 +532,99 @@ void setup() {
   Serial.println("Real Measurement Time (ms), Measurement 1, Measurement 2, ... etc.");
   Serial.println("-------------------------------------------------------------------------------");
 
+  M5.Lcd.fillScreen(GREEN);
+  M5.Lcd.setCursor(10, 100);
+  M5.Lcd.print("Press Button B..");
+  delay(3000);
 
+  //  M5.Lcd.fillScreen(GREEN);
+  //  M5.Lcd.setCursor(10, 100);
+  //  M5.Lcd.print("Pls wait,data is getting ready!");
 
 }
 
 void loop() {
 
-  unsigned long currentTime = millis();
-  unsigned long currentMillis = millis();
+  //  unsigned long currentTime = millis();
+  //  unsigned long currentMillis = millis();
 
 
   M5.update();
-  M5.Lcd.fillScreen(GREEN);
-  M5.Lcd.setCursor(10, 100);
-  
-  M5.Lcd.print("press the buttons..");
-  //delay(2000);
-  if (M5.BtnA.isPressed()) {
+
+  if (M5.BtnB.isPressed()) {
+
+    M5.Lcd.fillScreen(YELLOW);
+    M5.Lcd.setCursor(10, 120);
+    M5.Lcd.fillRect(0, 100, 400, 65, GREEN);
+
+    M5.Lcd.print("sensor data is ready");
+    delay(2000);
+    M5.Lcd.fillScreen(GREEN);
+    M5.Lcd.setCursor(10, 100);
+
+    M5.Lcd.print("Press Button A..");
+    delay(1000);
+
+  }
+
+  else if (M5.BtnA.isPressed()) {
     M5.Lcd.fillScreen(WHITE);
     printAtmosValuesBTNA1();
-    delay(2000);
+    delay(3000);
   }
+
   else if (M5.BtnA.wasReleased()) {
     M5.Lcd.fillScreen(WHITE);
     printAtmosValuesBTNA2();
+    delay(5000);
+    M5.Lcd.fillScreen(GREEN);
+    M5.Lcd.setCursor(10, 100);
+    M5.Lcd.print("Press Button C..");
+    delay(1000);
   }
-  else if (M5.BtnB.isPressed()) {
+
+  else if (M5.BtnC.isPressed()) {
     M5.Lcd.fillScreen(WHITE);
     printAtmosValuesBTNA3();
-    delay(2000);
+    delay(3000);
   }
-  else if (M5.BtnB.wasReleased()) {
+
+  else if (M5.BtnC.wasReleased()) {
     M5.Lcd.fillScreen(WHITE);
     printAtmosValuesBTNA4();
+    delay(5000);
   }
-  if (currentMillis - previousMillis >= 30000) {
-    // save the last time you blinked the LED
-    previousMillis = currentMillis;// wait ten seconds between measurement attempts.
-    MQTT_connect();
-  }
+  //  if (currentMillis - previousMillis >= 30000) {
+  //    // save the last time you blinked the LED
+  //    previousMillis = currentMillis;// wait ten seconds between measurement attempts.
+  //    MQTT_connect();
+  //  }
+  //
+  //  if (currentMillis - previousMillis >= interval) {
+  // save the last time you blinked the LED
+  //    previousMillis = currentMillis;// wait ten seconds between measurement attempts.
+  //   measure one at a time
+  for (byte i = 0; i < 62; i++) {
+    char addr = decToChar(i);
+    if (isActive[i]) {
+      //Serial.print(millis() / 1000);
+      Serial.print(millis());
+      Serial.print(", ");
+      getContinuousResults(addr, 4);
+      Serial.println();
 
-  if (currentMillis - previousMillis >= interval) {
-    // save the last time you blinked the LED
-    previousMillis = currentMillis;// wait ten seconds between measurement attempts.
-    //   measure one at a time
-    for (byte i = 0; i < 62; i++) {
-      char addr = decToChar(i);
-      if (isActive[i]) {
-        //Serial.print(millis() / 1000);
-        Serial.print(millis());
-        Serial.print(", ");
-        getContinuousResults(addr, 4);
-        Serial.println();
-
-        Temperature.publish(temperature);
-        atmosphericPressure.publish(atmosphericpressure);
-        humiditySensorTemperature.publish(humiditysensortemperature);
-        vaporPressure.publish(vaporpressure);
-        Precipitation.publish(precipitation);
-        Solar.publish(solar);
-        xOrientation.publish(xorientation );
-        yOrientation .publish(yorientation );
-        windDirection.publish(winddirection);
-        windSpeed.publish(windspeed);
-      }
+      Temperature.publish(temperature);
+      atmosphericPressure.publish(atmosphericpressure);
+      humiditySensorTemperature.publish(humiditysensortemperature);
+      vaporPressure.publish(vaporpressure);
+      Precipitation.publish(precipitation);
+      Solar.publish(solar);
+      xOrientation.publish(xorientation );
+      yOrientation .publish(yorientation );
+      windDirection.publish(winddirection);
+      windSpeed.publish(windspeed);
     }
   }
-  //
 }
+//
+//}
